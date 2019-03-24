@@ -1,0 +1,107 @@
+﻿body {
+}
+/*
+*******************************************************************
+* loading
+*******************************************************************
+*/
+.loading {
+    width: 150px;
+    height: 15px;
+    margin: 0 auto;
+    position: relative;
+    margin-top: 100px;
+}
+
+    .loading span {
+        position: absolute;
+        width: 15px;
+        height: 100%;
+        border-radius: 50%;
+        background: lightgreen;
+        -webkit-animation: load 1.04s ease-in infinite alternate;
+    }
+
+@-webkit-keyframes load {
+    0% {
+        opacity: 1;
+        -webkit-transform: translate(0px);
+    }
+
+    100% {
+        opacity: 0.2;
+        -webkit-transform: translate(150px);
+    }
+}
+
+.loading span:nth-child(1) {
+    -webkit-animation-delay: 0.13s;
+}
+
+.loading span:nth-child(2) {
+    -webkit-animation-delay: 0.26s;
+}
+
+.loading span:nth-child(3) {
+    -webkit-animation-delay: 0.39s;
+}
+
+.loading span:nth-child(4) {
+    -webkit-animation-delay: 0.52s;
+}
+
+.loading span:nth-child(5) {
+    -webkit-animation-delay: 0.65s;
+}
+
+/*
+*******************************************************************
+* nav
+*******************************************************************
+*/
+body {
+    position: relative;
+    font-family: "SF Pro Display",Roboto,Noto,Arial,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    font-size: 14px;
+    line-height: 1.57142857;
+    background-color: #f5f6f7;
+    color: #333;
+    min-height: 100%;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+.nav {
+    width: 970px;
+    height: 25px;
+    margin: 0 auto;
+    margin-bottom: 20px;
+}
+
+    .nav li {
+        padding: 0 15px 0 15px;
+        line-height: 25px;
+        float: left;
+        font-size: 14px;
+    }
+
+        .nav li a {
+            color: #3D3D3D;
+        }
+
+        .nav li:hover {
+            color: #c92027;
+        }
+
+            .nav li:hover a {
+                color: #c92027;
+            }
+            .nav .action a{
+                color: #c92027;
+            }

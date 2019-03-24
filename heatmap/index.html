@@ -1,0 +1,136 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <meta charset="utf-8" />
+    <link href="css/StyleSheet.css" rel="stylesheet" />
+    <style>
+        .heatmap {
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <ul>
+            <li data-floor="1f"><a href="#">1F</a></li>
+            <li data-floor="gf"><a href="#">GF</a></li>
+            <li data-floor="lg1"><a href="#">LG1</a></li>
+            <li data-floor="lg3"><a href="#">LG3</a></li>
+            <li data-floor="lg4"><a href="#">LG5</a></li>
+        </ul>
+    </div>
+    <div class="heatmap">
+        <canvas class="image-canvas" style="position: absolute; left: 0px; top: 0px;"></canvas>
+    </div>
+    <script src="d3/d3.v5.js"></script>
+    <script src="heatmap/heatmap.js"></script>
+    <script>
+
+        //-------------------------全局变量---------------------------
+        var zoomVal = 0.65;
+        var width = 1600 * zoomVal;
+        var height = 850 * zoomVal;
+        var p = 1;
+        var FloorSrcList = {
+            "1f": "picture/1f.png"
+            , "gf": "picture/gf.png"
+            , "lg1": "picture/lg1.png"
+            , "lg3": "picture/lg3.png"
+            , "lg4": "picture/lg4.png"
+        };
+        var FloorWifiCoordinateList = {
+            "1f": { url: "dataset/1f.csv", data: {}, IsLoaded: false }
+            , "gf": { url: "dataset/gf.csv", data: {}, IsLoaded: false }
+            , "lg1": { url: "dataset/lg1.csv", data: {}, IsLoaded: false }
+            , "lg3": { url: "dataset/lg3.csv", data: {}, IsLoaded: false }
+            , "lg4": { url: "dataset/lg4.csv", data: {}, IsLoaded: false }
+        };
+        var CurrentFloor = "lg1";
+        var interval = null;
+
+        //-------------------------导航栏单击事件---------------------------
+        d3.selectAll(".nav ul li")
+        .on("click", function () {
+            d3.selectAll(".nav .action").classed("action", false);
+            d3.select(this).attr("class", "action");
+            CurrentFloor = d3.select(this).attr("data-floor");
+            if (interval) {
+                clearInterval(interval);
+            }
+            loadImage(document.querySelector('.image-canvas'), FloorSrcList[CurrentFloor]);
+            requestCoordinateData(CurrentFloor,function () {
+                requestWifiData(function () { interval = setInterval(requestWifiData, 500); });
+            });
+        });
+
+        //-------------------------加载图片到canvas---------------------------
+        function loadImage(dom, src) {
+            var imgObj = new Image();
+            imgObj.src = src;
+            imgObj.onload = function () {
+                var ctx = dom.getContext('2d');
+                ctx.drawImage(this, 0, 0, width, height);
+            }
+        }
+
+        //-------------------------设置地图宽度---------------------------
+        d3.select(".image-canvas")
+            .attr("width", width)
+            .attr("height", height)
+        ;
+        d3.select(".heatmap")
+            .style("width", width + "px")
+            .style("height", height + "px")
+            .style("margin","0 auto")
+        ;
+
+        //-------------------------创建heatmap对象---------------------------
+        var heatmapInstance = h337.create({
+            container: document.querySelector('.heatmap')
+        });
+
+        //-------------------------生成Heatmap数据---------------------------
+        function generateHeatmapData(json) {
+            var floor = FloorWifiCoordinateList[CurrentFloor];
+            var points = [], max = 0;
+            for (var key in json.data) {
+                if (floor.data[key]) {
+                    max = Math.max(max, json.data[key]);
+                    points.push({ x: Math.floor(floor.data[key].Y * zoomVal), y: Math.floor(floor.data[key].X * zoomVal),value: json.data[key] });
+                }
+            }
+            return { max: max, data: points };
+        }
+
+        //-------------------------请求服务器数据---------------------------
+        function requestWifiData(callback) {
+            p = p > 6 ? 1 : p;
+            d3.json("dataset/" + p + ".json", {}).then(function (json) {
+                heatmapInstance.setData(generateHeatmapData(json));
+                p++;
+                (typeof callback === "function" && callback());
+            });
+        }
+
+        function requestCoordinateData(floorName, callback) {
+            var floor = FloorWifiCoordinateList[floorName];
+            if (floor.IsLoaded === true) {
+                (typeof callback === "function" && callback());
+                return;
+            }
+            d3.csv(floor.url, {}).then(function (csv) {
+                for (var i = 0; i < csv.length; i++) {
+                    FloorWifiCoordinateList[floorName].data[csv[i].name] = { X: csv[i].x, Y: csv[i].y};
+                    console.log(csv);
+                }
+                FloorWifiCoordinateList[floorName].IsLoaded = true;
+                (typeof callback === "function" && callback());
+            });
+        }
+
+        d3.select(".nav ul li").dispatch("click");
+    </script>
+</body>
+</html>
